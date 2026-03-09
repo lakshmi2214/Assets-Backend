@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Assets List</title>
+  <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}">
+</head>
+<body>
+  <div class="container mt-4">
+    <h2>Available Assets</h2>
+    <button id="toggle-list" class="btn btn-secondary mb-3">Hide assets list</button>
+    <div id="assets-container">
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Asset</th>
+          <th>Description</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for asset in assets %}
+        <tr>
+          <td style="width:100px;">{% if asset.image %}<img src="{{ asset.image.url }}" style="height:80px;" alt="{{ asset.name }}">{% endif %}</td>
+          <td><strong><a href="{% url 'asset_detail' asset.pk %}">{{ asset.name }}</a></strong><br><small>{{ asset.serial_number }}</small></td>
+          <td>{{ asset.description|truncatechars:120 }}</td>
+          <td>{{ asset.available|yesno:"Available,Unavailable" }}</td>
+          <td>
+            <a href="{% url 'book_asset' asset.pk %}" class="btn btn-primary btn-sm">Book Now</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No assets available.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+      </div>
+  </div>
+    <script>
+      (function(){
+        const btn = document.getElementById('toggle-list');
+        const container = document.getElementById('assets-container');
+        let visible = true;
+        btn.addEventListener('click', function(){
+          visible = !visible;
+          container.style.display = visible ? '' : 'none';
+          btn.textContent = visible ? 'Hide assets list' : 'Show assets list';
+        });
+      })();
+    </script>
+</body>
+</html>

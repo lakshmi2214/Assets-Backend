@@ -1,0 +1,53 @@
+{% extends 'assets/base.html' %}
+{% block content %}
+<div class="row">
+  <div class="col-md-4">
+    {% if asset.image %}
+      <img src="{{ asset.image.url }}" class="img-fluid mb-3" alt="{{ asset.name }}">
+    {% else %}
+      <img src="{% static 'assets/img/placeholder.png' %}" class="img-fluid mb-3" alt="No image">
+    {% endif %}
+  </div>
+  <div class="col-md-8">
+    <h2>{{ asset.name }}</h2>
+    <p>{{ asset.description }}</p>
+    <p><strong>Location:</strong> {{ asset.location }}</p>
+    <p><strong>Available:</strong> {{ asset.available }}</p>
+  </div>
+</div>
+
+<h4>Specifications</h4>
+<div class="card mb-3">
+  <div class="card-body">
+    {% if asset.details %}
+      <pre style="white-space:pre-wrap;">{{ asset.details }}</pre>
+    {% else %}
+      <p>No detailed specifications provided.</p>
+    {% endif %}
+  </div>
+</div>
+
+<h4>Bookings</h4>
+<ul>
+  {% for b in bookings %}
+  <li>{{ b.user }} — {{ b.start_datetime }} to {{ b.end_datetime }}</li>
+  {% empty %}
+  <li>No bookings</li>
+  {% endfor %}
+</ul>
+
+<h4>Location History</h4>
+<ul>
+  {% for h in history %}
+  <li>{{ h.timestamp }} — {{ h.location }} {% if h.note %} — {{ h.note }}{% endif %}</li>
+  {% empty %}
+  <li>No history</li>
+  {% endfor %}
+</ul>
+
+{% if user.is_authenticated %}
+<a href="{% url 'book_asset' asset.pk %}" class="btn btn-success">Book Asset</a>
+{% else %}
+<p><a href="/admin/login/">Login</a> to book this asset.</p>
+{% endif %}
+{% endblock %}

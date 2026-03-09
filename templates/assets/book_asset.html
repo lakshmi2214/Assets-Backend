@@ -1,0 +1,41 @@
+<div class="container mt-4">
+  <h3>Book: {{ asset.name }}</h3>
+  <form method="POST">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {{ form.asset }}
+    <div class="mb-3">
+      <label for="id_contact_name">Your Name</label>
+      {{ form.contact_name }}
+    </div>
+    <div class="mb-3">
+      <label for="id_contact_email">Email</label>
+      {{ form.contact_email }}
+    </div>
+    <div class="mb-3">
+      <label for="id_contact_mobile">Mobile Number</label>
+      {{ form.contact_mobile }}
+    </div>
+    <div class="mb-3">
+      <label for="id_contact_address">Address</label>
+      {{ form.contact_address }}
+    </div>
+    <div class="mb-3">
+      <label for="id_contact_location">Location</label>
+      {{ form.contact_location }}
+    </div>
+    <div class="mb-3">
+      <label for="id_start_datetime">Start Date & Time</label>
+      {{ form.start_datetime }}
+    </div>
+    <div class="mb-3">
+      <label for="id_end_datetime">End Date & Time</label>
+      {{ form.end_datetime }}
+    </div>
+    <div class="mb-3">
+      <label for="id_purpose">Purpose</label>
+      {{ form.purpose }}
+    </div>
+    <button type="submit" class="btn btn-success">Confirm Booking</button>
+  </form>
+</div>

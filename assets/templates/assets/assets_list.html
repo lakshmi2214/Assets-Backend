@@ -1,0 +1,11 @@
+{% extends 'assets/base.html' %}  <!-- base.html lives in assets/templates/assets/ -->
+{% block content %}
+<h1>Assets List</h1>
+<ul>
+  {% for asset in assets %}
+    <li>{{ asset.name }} — {{ asset.category }}</li>
+  {% empty %}
+    <li>No assets available.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

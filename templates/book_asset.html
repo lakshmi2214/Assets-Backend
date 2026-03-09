@@ -1,0 +1,19 @@
+<div class="container mt-4">
+  <h3>Book: {{ asset.name }}</h3>
+  <form method="POST">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label>Your Name</label>
+      <input type="text" name="user_name" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label>Start Date & Time</label>
+      <input type="datetime-local" name="start_datetime" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label>End Date & Time</label>
+      <input type="datetime-local" name="end_datetime" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-success">Confirm Booking</button>
+  </form>
+</div>
