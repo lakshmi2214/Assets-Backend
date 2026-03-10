@@ -128,6 +128,8 @@ CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:3000',
     'http://localhost:3001',
     'http://127.0.0.1:3001',
+    'https://asset-booking-frontendn.vercel.app',
+    'https://asset-booking-backend.vercel.app',
 ]
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
@@ -144,7 +146,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3001',
     'http://127.0.0.1:3001',
     'https://asset-booking-frontendn.vercel.app',
-    'https://assets-backend-lakshmi2214.vercel.app',
+    'https://asset-booking-backend.vercel.app',
 ]
 
 # Session and Security Configuration
