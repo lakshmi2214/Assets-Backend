@@ -143,11 +143,11 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3001',
     'http://127.0.0.1:3001',
     'https://asset-booking-frontendn.vercel.app',
+    'https://assets-backend-lakshmi2214.vercel.app',
 ]
 
 # Session and Security Configuration
 # On Vercel (Serverless), persistent DB sessions fail because SQLite is ephemeral.
-# So we use Signed Cookie Sessions - the session is stored encrypted in your browser!
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_AGE = 1209600  # 2 weeks
@@ -158,8 +158,10 @@ SESSION_SAVE_EVERY_REQUEST = True
 if 'VERCEL' in os.environ:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SESSION_COOKIE_SAMESITE = 'Lax'
-    CSRF_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SAMESITE = 'None' # Required for some cross-site Vercel setups
+    CSRF_COOKIE_SAMESITE = 'None'
+    # This is CRITICAL for Vercel to recognize HTTPS
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 else:
     # Local development settings
     SESSION_COOKIE_SECURE = False
