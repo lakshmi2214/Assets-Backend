@@ -31,6 +31,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'assets.middleware.PersistAdminSessionMiddleware',  # Keeps admin session alive on Vercel
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -147,25 +148,27 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # Session and Security Configuration
-# On Vercel (Serverless), persistent DB sessions fail because SQLite is ephemeral.
+# On Vercel (Serverless), use signed cookies so session survives across cold starts.
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_AGE = 1209600  # 2 weeks
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-SESSION_SAVE_EVERY_REQUEST = True 
+SESSION_SAVE_EVERY_REQUEST = True
 
-# Security settings for cookies (Required for HTTPS on Vercel)
+# Vercel sits behind a proxy, we must tell Django to trust the HTTPS header
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Security settings for cookies
 if 'VERCEL' in os.environ:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SESSION_COOKIE_SAMESITE = 'None' # Required for some cross-site Vercel setups
-    CSRF_COOKIE_SAMESITE = 'None'
-    # This is CRITICAL for Vercel to recognize HTTPS
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    CSRF_COOKIE_SAMESITE = 'Lax'
 else:
     # Local development settings
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SAMESITE = 'Lax'
 
 # Email Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
