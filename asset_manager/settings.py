@@ -146,16 +146,24 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # Session and Security Configuration
-SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
+# On Vercel (Serverless), persistent DB sessions fail because SQLite is ephemeral.
+# So we use Signed Cookie Sessions - the session is stored encrypted in your browser!
+SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_AGE = 1209600  # 2 weeks
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-SESSION_SAVE_EVERY_REQUEST = True
+SESSION_SAVE_EVERY_REQUEST = True 
 
-# Security settings for cookies (Required if using HTTPS like on Vercel)
-if not DEBUG or 'VERCEL' in os.environ:
+# Security settings for cookies (Required for HTTPS on Vercel)
+if 'VERCEL' in os.environ:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SAMESITE = 'Lax'
     CSRF_COOKIE_SAMESITE = 'Lax'
+else:
+    # Local development settings
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
 
 # Email Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
