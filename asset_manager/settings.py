@@ -86,6 +86,9 @@ elif 'VERCEL' in os.environ:
     MEDIA_ROOT = os.path.join('/tmp', 'media')
     if not os.path.exists(MEDIA_ROOT):
         os.makedirs(MEDIA_ROOT)
+    src_media_dir = BASE_DIR / 'media'
+    if os.path.exists(src_media_dir):
+        shutil.copytree(src_media_dir, MEDIA_ROOT, dirs_exist_ok=True)
 
 AUTH_PASSWORD_VALIDATORS = []
 
@@ -105,9 +108,13 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Fix for Vercel: Use writable /tmp directory for media
 if 'VERCEL' in os.environ:
+    import shutil
     MEDIA_ROOT = os.path.join('/tmp', 'media')
     if not os.path.exists(MEDIA_ROOT):
         os.makedirs(MEDIA_ROOT)
+    src_media_dir = BASE_DIR / 'media'
+    if os.path.exists(src_media_dir):
+        shutil.copytree(src_media_dir, MEDIA_ROOT, dirs_exist_ok=True)
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
