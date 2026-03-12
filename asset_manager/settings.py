@@ -180,18 +180,16 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # Session and Security Configuration
-# On Vercel (Serverless), use signed cookies so session survives across cold starts.
-SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+# Now that we use Postgres, standard DB-backed sessions are completely reliable across cold starts.
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_AGE = 1209600  # 2 weeks
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-SESSION_SAVE_EVERY_REQUEST = True
 
 # Vercel sits behind a proxy, we must tell Django to trust the HTTPS header
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Security settings for cookies
-if 'VERCEL' in os.environ:
+if os.environ.get('VERCEL') == '1' or 'VERCEL' in os.environ:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SAMESITE = 'Lax'
