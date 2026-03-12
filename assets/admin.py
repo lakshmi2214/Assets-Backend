@@ -1,5 +1,14 @@
 from django.contrib import admin
+from django.contrib.auth.models import User
+from django.contrib.auth.admin import UserAdmin
 from .models import Asset, Booking, Location, LocationHistory, CancellationRequest, Category, SubCategory
+
+admin.site.unregister(User)
+
+@admin.register(User)
+class CustomUserAdmin(UserAdmin):
+    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'date_joined', 'last_login')
+    ordering = ('-date_joined',)
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -64,7 +73,7 @@ class BookingAdmin(admin.ModelAdmin):
         return '-'
     returned_img.short_description = 'Returned Photo'
 
-    actions = ['approve_cancellation']
+    actions = ['approve_cancellation', 'accept_booking', 'reject_booking']
 
     @admin.action(description='Approve cancellation for selected bookings')
     def approve_cancellation(self, request, queryset):
@@ -73,6 +82,22 @@ class BookingAdmin(admin.ModelAdmin):
                 booking.status = Booking.Status.CANCELLED
                 booking.save()
         self.message_user(request, "Selected bookings have been cancelled.")
+
+    @admin.action(description='Accept selected bookings')
+    def accept_booking(self, request, queryset):
+        for booking in queryset:
+            if booking.status == Booking.Status.PENDING:
+                booking.status = Booking.Status.ACCEPTED
+                booking.save()
+        self.message_user(request, "Selected bookings have been accepted.")
+
+    @admin.action(description='Reject selected bookings')
+    def reject_booking(self, request, queryset):
+        for booking in queryset:
+            if booking.status == Booking.Status.PENDING:
+                booking.status = Booking.Status.REJECTED
+                booking.save()
+        self.message_user(request, "Selected bookings have been rejected.")
 
 @admin.register(CancellationRequest)
 class CancellationRequestAdmin(admin.ModelAdmin):
@@ -84,8 +109,8 @@ class CancellationRequestAdmin(admin.ModelAdmin):
         'end_datetime',
         'status'
     )
-    readonly_fields = ('asset', 'user', 'start_datetime', 'end_datetime', 'purpose', 'contact_name', 'contact_email', 'contact_mobile')
-    actions = ['approve_cancellation']
+    readonly_fields = ('asset', 'user', 'start_datetime', 'end_datetime', 'purpose', 'contact_name', 'contact_email', 'contact_mobile', 'cancellation_reason')
+    actions = ['approve_cancellation', 'reject_cancellation']
 
     def get_queryset(self, request):
         return super().get_queryset(request).filter(status=Booking.Status.CANCELLATION_REQUESTED)
@@ -96,6 +121,15 @@ class CancellationRequestAdmin(admin.ModelAdmin):
             booking.status = Booking.Status.CANCELLED
             booking.save()
         self.message_user(request, "Selected cancellation requests have been approved.")
+
+    @admin.action(description='Reject selected cancellations (Keep booking)')
+    def reject_cancellation(self, request, queryset):
+        for booking in queryset:
+            # Revert to previous state or just set to Pending/Accepted based on some logic. 
+            # For now, let's set it back to PENDING if it was requested.
+            booking.status = Booking.Status.PENDING 
+            booking.save()
+        self.message_user(request, "Selected cancellation requests have been rejected and bookings are back to pending.")
 
     def has_add_permission(self, request):
         return False
