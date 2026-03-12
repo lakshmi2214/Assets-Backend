@@ -45,27 +45,37 @@ class AssetSerializer(serializers.ModelSerializer):
         name = obj.image.name
         if not name:
             return None
-        # If already a full URL (e.g. https://res.cloudinary.com/...) return as-is
-        if name.startswith('http'):
+
+        CLOUD = 'dcqegufoe'
+
+        # If it's already a Cloudinary URL, return as-is
+        if 'res.cloudinary.com' in name:
             return name
-        # Build Cloudinary secure URL from public_id
-        # public_id is stored without extension (e.g. media/assets/images/filename)
-        try:
-            import cloudinary
-            from django.conf import settings as s
-            cfg = s.CLOUDINARY_STORAGE
-            cloud = cfg.get('CLOUD_NAME', 'dcqegufoe')
-            # Determine extension from original name
-            ext = 'jpg'  # default
-            original_name = obj.image.name
-            if '.' in original_name.split('/')[-1]:
-                ext = original_name.rsplit('.', 1)[-1].lower()
-                if ext == 'jpeg':
-                    ext = 'jpg'
-            return f'https://res.cloudinary.com/{cloud}/image/upload/{name}.{ext}'
-        except Exception:
-            request = self.context.get('request')
-            return request.build_absolute_uri(obj.image.url) if request else obj.image.url
+
+        # If it's an old backend URL like https://asset-booking-backend.vercel.app/media/...
+        # extract the relative path and build a Cloudinary URL
+        if name.startswith('http'):
+            for prefix in [
+                'https://asset-booking-backend.vercel.app/media/',
+                'https://assets-backend-ochre.vercel.app/media/',
+                'http://127.0.0.1:8000/media/',
+                'http://localhost:8000/media/',
+            ]:
+                if name.startswith(prefix):
+                    relative = name[len(prefix):]
+                    # Strip extension for Cloudinary public_id, then re-add .jpg
+                    base = relative.rsplit('.', 1)[0] if '.' in relative.split('/')[-1] else relative
+                    return f'https://res.cloudinary.com/{CLOUD}/image/upload/media/{base}.jpg'
+            # Unknown full URL - return as-is
+            return name
+
+        # It's a relative path / Cloudinary public_id (e.g. media/assets/images/filename)
+        base = name.rsplit('.', 1)[0] if '.' in name.split('/')[-1] else name
+        ext = 'jpg'
+        if '.' in name.split('/')[-1]:
+            raw_ext = name.rsplit('.', 1)[-1].lower()
+            ext = 'jpg' if raw_ext == 'jpeg' else raw_ext
+        return f'https://res.cloudinary.com/{CLOUD}/image/upload/{base}.{ext}'
 
     def get_status(self, obj):
         if not obj.available:
