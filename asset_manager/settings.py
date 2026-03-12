@@ -65,33 +65,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'asset_manager.wsgi.application'
 
+import dj_database_url
+fallback_url = 'postgresql://neondb_owner:npg_LYaQ6q2twUDb@ep-bitter-morning-ahw6s9sm-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require'
+db_url = os.environ.get('DATABASE_URL', fallback_url)
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.parse(db_url, conn_max_age=0, ssl_require=True)
 }
 
-import dj_database_url
-# Check for DATABASE_URL (Vercel Postgres or other external DB)
-if 'DATABASE_URL' in os.environ:
-    DATABASES['default'] = dj_database_url.config(conn_max_age=0, ssl_require=True)
-# Fallback to SQLite (in /tmp) if no external DB is configured
-elif 'VERCEL' in os.environ:
+# Fix for Media files (uploads) on Vercel
+# Redirect MEDIA_ROOT to /tmp/media because default location is read-only
+if 'VERCEL' in os.environ:
     import shutil
-    DB_FILE = 'db.sqlite3'
-    # Copy the database to /tmp so it is writable
-    # Note: /tmp is ephemeral, data will reset on new deployments/cold starts
-    tmp_db = os.path.join('/tmp', DB_FILE)
-    if not os.path.exists(tmp_db):
-        src_db = BASE_DIR / DB_FILE
-        if os.path.exists(src_db):
-            shutil.copy2(src_db, tmp_db)
-    
-    DATABASES['default']['NAME'] = tmp_db
-
-    # Fix for Media files (uploads) on Vercel
-    # Redirect MEDIA_ROOT to /tmp/media because default location is read-only
     MEDIA_ROOT = os.path.join('/tmp', 'media')
     if not os.path.exists(MEDIA_ROOT):
         os.makedirs(MEDIA_ROOT)
