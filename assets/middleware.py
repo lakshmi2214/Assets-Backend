@@ -15,12 +15,12 @@ The fix:
   This ensures admin stays logged in across serverless container restarts.
 """
 
-from django.contrib.auth import SESSION_KEY, HASH_SESSION_KEY, BACKEND_SESSION_KEY
-
+from django.contrib.auth import get_user, HASH_SESSION_KEY
+from django.contrib.auth.models import AnonymousUser
 
 class PersistAdminSessionMiddleware:
     """
-    Refreshes the auth hash stored in the session on every request.
+    Refreshes the auth hash and bypasses strict hash invalidation.
     This prevents Django Admin from logging out users on Vercel serverless
     deployments where the database is reset between cold starts.
     """
@@ -30,15 +30,19 @@ class PersistAdminSessionMiddleware:
 
     def __call__(self, request):
         # Only run on admin paths
-        if request.path.startswith('/admin/') and hasattr(request, 'user') and request.user.is_authenticated:
-            # Refresh the session auth hash so it always matches the current DB state
-            try:
-                current_hash = request.user.get_session_auth_hash()
-                if request.session.get(HASH_SESSION_KEY) != current_hash:
-                    request.session[HASH_SESSION_KEY] = current_hash
-                    request.session.modified = True
-            except Exception:
-                pass  # Never break the request over this
+        if request.path.startswith('/admin/'):
+            # If the user was kicked out by AuthenticationMiddleware (is_authenticated is False)
+            # but the session still has their user_id, force them back in.
+            if hasattr(request, 'user') and not request.user.is_authenticated:
+                from django.contrib.auth import _get_user_session_key
+                try:
+                    user_id = _get_user_session_key(request)
+                    if user_id:
+                        from django.contrib.auth.models import User
+                        user = User.objects.get(pk=user_id)
+                        request.user = user
+                except Exception:
+                    pass
 
         response = self.get_response(request)
         return response
