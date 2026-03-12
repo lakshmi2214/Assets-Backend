@@ -118,15 +118,14 @@ if 'VERCEL' in os.environ:
     if os.path.exists(src_media_dir):
         shutil.copytree(src_media_dir, MEDIA_ROOT, dirs_exist_ok=True)
 
-# Cloudinary Integration for Vercel Image Hosting
+# Cloudinary Integration
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'dx6tl6aa2'),
     'API_KEY': os.environ.get('CLOUDINARY_API_KEY', '848777134372957'),
     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', '4Ats9tHCHQeL0Nl55_vL76Qe2N4'),
 }
 
-if 'VERCEL' in os.environ or os.environ.get('USE_CLOUDINARY') == 'True':
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
