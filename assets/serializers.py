@@ -40,10 +40,32 @@ class AssetSerializer(serializers.ModelSerializer):
         fields = ('id','name','description','details','serial_number','location','category','category_id','subcategory','subcategory_id','available','total_quantity','image','image_url', 'status')
     
     def get_image_url(self, obj):
-        request = self.context.get('request')
-        if obj.image:
+        if not obj.image:
+            return None
+        name = obj.image.name
+        if not name:
+            return None
+        # If already a full URL (e.g. https://res.cloudinary.com/...) return as-is
+        if name.startswith('http'):
+            return name
+        # Build Cloudinary secure URL from public_id
+        # public_id is stored without extension (e.g. media/assets/images/filename)
+        try:
+            import cloudinary
+            from django.conf import settings as s
+            cfg = s.CLOUDINARY_STORAGE
+            cloud = cfg.get('CLOUD_NAME', 'dcqegufoe')
+            # Determine extension from original name
+            ext = 'jpg'  # default
+            original_name = obj.image.name
+            if '.' in original_name.split('/')[-1]:
+                ext = original_name.rsplit('.', 1)[-1].lower()
+                if ext == 'jpeg':
+                    ext = 'jpg'
+            return f'https://res.cloudinary.com/{cloud}/image/upload/{name}.{ext}'
+        except Exception:
+            request = self.context.get('request')
             return request.build_absolute_uri(obj.image.url) if request else obj.image.url
-        return None
 
     def get_status(self, obj):
         if not obj.available:

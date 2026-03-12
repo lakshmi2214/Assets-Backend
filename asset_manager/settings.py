@@ -111,9 +111,9 @@ if 'VERCEL' in os.environ:
 
 # Cloudinary Integration
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'dx6tl6aa2'),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', '848777134372957'),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', '4Ats9tHCHQeL0Nl55_vL76Qe2N4'),
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'dcqegufoe'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', '811335934986437'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', '0y8QVc7Jg7FooYdRqxyyOjAXU94'),
 }
 
 STORAGES = {
