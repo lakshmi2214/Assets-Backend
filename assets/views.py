@@ -6,7 +6,7 @@ from .forms import BookingForm
 
 def home(request):
     """Render the main asset list page."""
-    assets = Asset.objects.all()
+    assets = Asset.objects.all().order_by('-id')
     return render(request, 'assets/asset_list.html', {'assets': assets})
 
 
@@ -42,7 +42,7 @@ def book_asset(request, pk):
 
 
 def asset_list(request):
-    assets = Asset.objects.filter(available=True)
+    assets = Asset.objects.filter(available=True).order_by('-id')
     return render(request, 'assets/assets_list.html', {'assets': assets})
 
 

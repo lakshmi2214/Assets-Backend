@@ -13,7 +13,7 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         return obj.user == request.user or request.user.is_staff
 
 class AssetViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Asset.objects.all()
+    queryset = Asset.objects.all().order_by('-id')
     serializer_class = AssetSerializer
     permission_classes = [permissions.AllowAny]
 

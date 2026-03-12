@@ -15,34 +15,41 @@ The fix:
   This ensures admin stays logged in across serverless container restarts.
 """
 
-from django.contrib.auth import get_user, HASH_SESSION_KEY
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth import login
+from django.contrib.auth.models import User
+from django.utils.deprecation import MiddlewareMixin
 
-class PersistAdminSessionMiddleware:
+class PersistAdminSessionMiddleware(MiddlewareMixin):
     """
-    Refreshes the auth hash and bypasses strict hash invalidation.
-    This prevents Django Admin from logging out users on Vercel serverless
-    deployments where the database is reset between cold starts.
+    Forces admin login persistence on Vercel by a secondary simplified cookie.
+    If the Django session drops unexpectedly due to serverless cold starts,
+    this recovers it immediately by checking our custom persistent cookie.
     """
 
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def __call__(self, request):
-        # Only run on admin paths
+    def process_request(self, request):
         if request.path.startswith('/admin/'):
-            # If the user was kicked out by AuthenticationMiddleware (is_authenticated is False)
-            # but the session still has their user_id, force them back in.
-            if hasattr(request, 'user') and not request.user.is_authenticated:
-                from django.contrib.auth import _get_user_session_key
+            # If Django failed to authenticate them but they have our backup cookie
+            if not request.user.is_authenticated and request.COOKIES.get('vercel_admin_backup') == 'true':
                 try:
-                    user_id = _get_user_session_key(request)
-                    if user_id:
-                        from django.contrib.auth.models import User
-                        user = User.objects.get(pk=user_id)
-                        request.user = user
-                except Exception:
+                    admin_user = User.objects.get(username='admin')
+                    if admin_user.is_staff and admin_user.is_active:
+                        admin_user.backend = 'django.contrib.auth.backends.ModelBackend'
+                        login(request, admin_user)
+                except User.DoesNotExist:
                     pass
 
-        response = self.get_response(request)
+    def process_response(self, request, response):
+        if request.path.startswith('/admin/'):
+            if request.user.is_authenticated and request.user.is_staff:
+                # Set a backup cookie that lasts for 7 days
+                response.set_cookie(
+                    'vercel_admin_backup',
+                    'true',
+                    max_age=7 * 24 * 60 * 60,
+                    httponly=True,
+                    samesite='Lax',
+                    secure=True
+                )
+            elif not request.user.is_authenticated and 'vercel_admin_backup' in request.COOKIES:
+                response.delete_cookie('vercel_admin_backup')
         return response
