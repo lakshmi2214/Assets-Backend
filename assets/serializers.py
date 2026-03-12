@@ -41,8 +41,9 @@ class AssetSerializer(serializers.ModelSerializer):
     
     def get_image_url(self, obj):
         request = self.context.get('request')
+        storage_cls = type(obj.image.storage).__name__
         if obj.image:
-            return request.build_absolute_uri(obj.image.url) if request else obj.image.url
+            return f"DEPLOYMENT_TEST: {storage_cls} :: " + str(obj.image.url)
         return None
 
     def get_status(self, obj):
