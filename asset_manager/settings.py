@@ -1,7 +1,15 @@
-from pathlib import Path
 import os
+from pathlib import Path
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Try loading .env.local first, then .env
+env_local_path = BASE_DIR / '.env.local'
+if env_local_path.exists():
+    load_dotenv(env_local_path)
+else:
+    load_dotenv()
 
 SECRET_KEY = 'django-insecure-placeholder-key'
 
